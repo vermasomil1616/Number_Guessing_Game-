@@ -1,0 +1,92 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+
+public class GuessingGameGUI extends JFrame {
+    private final int MAX_ATTEMPTS = 7;
+    private int secret, attempts, wins, rounds;
+    private JLabel feedback, stats;
+    private JTextField input;
+    private JButton guessBtn, newRoundBtn;
+    private Random rand = new Random();
+
+    public GuessingGameGUI() {
+        super("Guess the Number");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new GridLayout(5,1,5,5));
+        
+        add(new JLabel("Guess a number between 1 and 100:"));
+        input = new JTextField();
+        add(input);
+        
+        guessBtn = new JButton("Guess");
+        add(guessBtn);
+        
+        feedback = new JLabel("You have " + MAX_ATTEMPTS + " attempts.");
+        add(feedback);
+        
+        stats = new JLabel("Rounds: 0 | Wins: 0");
+        add(stats);
+        
+        newRoundBtn = new JButton("New Round");
+        newRoundBtn.setEnabled(false);
+        add(newRoundBtn);
+        
+        guessBtn.addActionListener(e -> checkGuess());
+        input.addActionListener(e -> checkGuess());
+        newRoundBtn.addActionListener(e -> startRound());
+        
+        pack(); 
+        setLocationRelativeTo(null);
+        startRound();
+        setVisible(true);
+    }
+
+    private void startRound() {
+        secret = rand.nextInt(100) + 1;
+        attempts = 0;
+        rounds++;
+        feedback.setText("New round! You have " + MAX_ATTEMPTS + " attempts.");
+        stats.setText("Rounds: " + rounds + " | Wins: " + wins);
+        input.setText("");
+        input.setEditable(true);
+        guessBtn.setEnabled(true);
+        newRoundBtn.setEnabled(false);
+    }
+
+    private void endRound(boolean win) {
+        if (win) wins++;
+        input.setEditable(false);
+        guessBtn.setEnabled(false);
+        newRoundBtn.setEnabled(true);
+        stats.setText("Rounds: " + rounds + " | Wins: " + wins);
+    }
+
+    private void checkGuess() {
+        String text = input.getText().trim();
+        int guess;
+        try {
+            guess = Integer.parseInt(text);
+        } catch (NumberFormatException ex) {
+            feedback.setText("Enter a valid integer.");
+            return;
+        }
+        attempts++;
+        if (guess == secret) {
+            feedback.setText("🎉 Correct in " + attempts + " attempts!");
+            endRound(true);
+        } else if (attempts >= MAX_ATTEMPTS) {
+            feedback.setText("Game over! Number was: " + secret);
+            endRound(false);
+        } else {
+            feedback.setText((guess < secret ? "Too low!" : "Too high!") 
+                + " Attempts left: " + (MAX_ATTEMPTS - attempts));
+        }
+        input.setText("");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(GuessingGameGUI::new);
+    }
+}
